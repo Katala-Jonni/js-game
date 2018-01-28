@@ -264,49 +264,6 @@ class Player extends Actor{ // содержит базовый функцион�
   }
 }
 
-const schemas = [
-  [
-    '         ',
-    '   h     ',
-    '         ',
-    '       o ',
-    '@     xxx',
-    '         ',
-    'xxx      ',
-    '         '
-  ],
-  [
-    '   v     ',
-    '         ',
-    '         ',
-    '@       o',
-    '        x',
-    '    x    ',
-    'x        ',
-    '         '
-  ],
-  [
-    '            ',
-    '      v     ',
-    '           o',
-    '@       o  x',
-    '    o   x   ',
-    '    x       ',
-    'x           ',
-    '            '
-  ],
-  [
-    ' v           ',
-    '             ',
-    '             ',
-    '@   h    o   ',
-    '        xx   ',
-    '    xx       ',
-    'xx         o ',
-    '           xx'
-  ]
-];
-
 const actorDict = {
  '@': Player,
  'o': Coin,
@@ -320,3 +277,4 @@ const parser = new LevelParser(actorDict);
 loadLevels().then(lev => {
  return runGame(JSON.parse(lev), parser, DOMDisplay)
 }).then(result => alert('Вы выиграли!'));
+
