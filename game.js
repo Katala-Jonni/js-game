@@ -12,7 +12,6 @@ class Vector {
     plus(vector) {
         if (!(vector instanceof Vector)) {
             throw new Error(`Можно прибавлять к вектору только вектор типа Vector`);
-
         }
         return new Vector(this.x + vector.x, this.y + vector.y);
     }
@@ -70,16 +69,21 @@ class Actor {
 }
 
 class Level {
+    // принимает сетка игрового поля,
+    // список движущихся объектов игрового поля
     constructor(grid = [], actors = []) {
-        this.grid = grid.slice(); // сетка игрового поля
-        this.actors = actors.slice(); // список движущихся объектов игрового поля
-        this.height = (this.grid === undefined) ? 0 : this.grid.length; // высота игрового поля, равное числу строк в сетке из первого аргумента.
-        this.width = (this.grid === undefined) ? 0 : this.grid.reduce(function(a, b) { // ширина игрового поля, равное числу ячеек в строке сетки из первого аргумента.
+        this.grid = grid.slice();
+        this.actors = actors.slice();
+        this.height = (this.grid === undefined) ? 0 : this.grid.length;
+        this.width = (this.grid === undefined) ? 0 : this.grid.reduce(function(a, b) {
             return b.length > a ? b.length : a;
         }, 0);
-        this.status = null; // состояние прохождения уровня
-        this.finishDelay = 1; // таймаут после окончания игры
-        this.player = this.actors.find(act => { // движущийся объект
+        // состояние прохождения уровня
+        this.status = null;
+        // таймаут после окончания игры
+        this.finishDelay = 1;
+        // движущийся объект
+        this.player = this.actors.find(act => {
             return act.type === 'player';
         });
     }
@@ -115,16 +119,16 @@ class Level {
         }
         for (let i = top; i < bottom; i++) {
             for (let k = left; k < right; k++) {
-                let gridCount = this.grid[i][k];
+                const gridCount = this.grid[i][k];
                 if (gridCount) {
-                    return this.grid[i][k]
+                    return gridCount;
                 }
             }
         }
     }
     // Метод удаляет переданный объект с игрового поля.
     removeActor(actor) {
-        this.actors = this.actors.filter((el) => {
+        this.actors = this.actors.filter(el => {
             return el !== actor;
         });
     }
@@ -135,10 +139,12 @@ class Level {
     playerTouched(type, actor) {
         if (this.status !== null) {
             return;
-        } else if (type === 'lava' || type === 'fireball') {
+        }
+        if (type === 'lava' || type === 'fireball') {
             this.status = 'lost';
             this.finishDelay = 1;
-        } else if (type === 'coin') {
+        }
+        if (type === 'coin') {
             this.actors = this.actors.filter(other => other != actor);
             if (this.noMoreActors('coin')) {
                 this.status = 'won';
@@ -148,8 +154,9 @@ class Level {
     }
 }
 // позволяет создать игровое поле Level из массива строк
+// принимает словарь
 class LevelParser {
-    constructor(map) { // словарь
+    constructor(map) {
         this.map = map;
     }
     // Возвращает конструктор объекта по его символу, используя словарь. 
@@ -173,19 +180,19 @@ class LevelParser {
     // в ячейках которого хранится либо строка,
     // соответствующая препятствию, либо undefined.
     createGrid(plan) {
-        let planArr = plan.map(el => el.split(''));
+        const planArr = plan.map(el => el.split(''));
         return planArr.map(el => el = el.map(el => this.obstacleFromSymbol(el)));
     }
     // Принимает массив строк и преобразует его в массив движущихся объектов,
     // используя для их создания конструкторы из словаря.
     createActors(plan) {
         let actors = [];
-        if (this.map) { // словарь
+        if (this.map) {
             plan.map((elemY, y) => {
                 [...elemY].map((elemX, x) => {
-                    let mapEl = this.map[elemX];
+                    const mapEl = this.map[elemX];
                     if (typeof mapEl === 'function') {
-                        let res = new mapEl(new Vector(x, y));
+                        const res = new mapEl(new Vector(x, y));
                         if (res instanceof Actor) {
                             actors.push(res);
                         }
