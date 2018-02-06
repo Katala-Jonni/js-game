@@ -59,7 +59,21 @@ class Actor {
             return false;
         }
 
+        /*
+        вместо
 
+        if (smth) {
+          return true;
+        } else {
+          return false;
+        }
+
+        smth это выражение равно true или false,
+        то лучше писать
+
+        return smth;
+
+        */
         if (this.right > actor.left &&
             this.left < actor.right &&
             this.top < actor.bottom &&
@@ -76,7 +90,12 @@ class Level {
     constructor(grid = [], actors = []) {
         this.grid = grid.slice();
         this.actors = actors.slice();
+        // если this.grid будет неопределян, то работать ничего не будет
+        // лучше проверить это один раз и выбросить ошибку в конструкторе
+        // хотя, поскольку задано значение по-умолчанию для аргумента,
+        // this.grid будет определён и проверку можно убрать вовсе
         this.height = (this.grid === undefined) ? 0 : this.grid.length;
+        // тут лушче использвоать стрелочную функцию
         this.width = (this.grid === undefined) ? 0 : this.grid.reduce(function(a, b) {
             return b.length > a ? b.length : a;
         }, 0);
@@ -85,6 +104,7 @@ class Level {
         // таймаут после окончания игры
         this.finishDelay = 1;
         // движущийся объект
+        // можно опустить фигурные скобки и return
         this.player = this.actors.find(act => {
             return act.type === 'player';
         });
@@ -99,6 +119,7 @@ class Level {
             throw new Error(`Не является экземпляром Actor или не передано аргументов`);
         }
         // если переданный объект пересекается с обЪектом или объектами
+        // можно в одну строчку
         return this.actors.find(act =>
             act.isIntersect(actor));
     }
@@ -121,6 +142,7 @@ class Level {
         }
         for (let i = top; i < bottom; i++) {
             for (let k = left; k < right; k++) {
+                // gridCount - не очень удачное название переменной
                 const gridCount = this.grid[i][k];
                 if (gridCount) {
                     return gridCount;
@@ -130,6 +152,7 @@ class Level {
     }
     // Метод удаляет переданный объект с игрового поля.
     removeActor(actor) {
+        // можно опустить фигурные скобки и retrun
         this.actors = this.actors.filter(el => {
             return el !== actor;
         });
@@ -147,6 +170,7 @@ class Level {
             this.finishDelay = 1;
         }
         if (type === 'coin') {
+            // дублирование логики, уже есть метод которые делает тоже самое
             this.actors = this.actors.filter(other => other != actor);
             if (this.noMoreActors('coin')) {
                 this.status = 'won';
@@ -174,6 +198,7 @@ class LevelParser {
                 return 'wall';
             case '!':
                 return 'lava';
+            // что изменится если убрать следующие 2 строчки?
             default:
                 return undefined;
         }
@@ -182,15 +207,22 @@ class LevelParser {
     // в ячейках которого хранится либо строка,
     // соответствующая препятствию, либо undefined.
     createGrid(plan) {
+        // можно в одну строчку записать вообще
         const planArr = plan.map(el => el.split(''));
+        // зачем el = ?
         return planArr.map(el => el = el.map(el => this.obstacleFromSymbol(el)));
     }
     // Принимает массив строк и преобразует его в массив движущихся объектов,
     // используя для их создания конструкторы из словаря.
     createActors(plan) {
+        // здесь тоже можно использовть const
+        // т.к. значение присваивается переменной только один раз
         let actors = [];
+        // то что this.map определён лучше проверять в конструкторе
         if (this.map) {
+            // тут можно использовать reduce
             plan.map((elemY, y) => {
+                // обычно строчки преобразовывают в массив с помощью меттода split
                 [...elemY].map((elemX, x) => {
                     const mapEl = this.map[elemX];
                     if (typeof mapEl === 'function') {
@@ -230,6 +262,8 @@ class Fireball extends Actor {
     // Обновляет состояние движущегося объекта.
     act(time, level) {
         const newPosition = this.getNextPosition(time);
+        // почему мы бы не обратить условие в if и не поменять ветки местами?
+        // код будет понятнее
         if (!(level.obstacleAt(newPosition, this.size))) {
             this.pos = newPosition;
         } else {
@@ -315,7 +349,7 @@ const actorDict = {
     '=': HorizontalFireball,
     '|': VerticalFireball
 
-}
+} // тут можно поставить точку с запятой :)
 const parser = new LevelParser(actorDict);
 
 loadLevels()
