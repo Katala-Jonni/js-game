@@ -56,15 +56,16 @@ class Actor {
         }
         // если равен самому себе
         if (actor === this) {
-            return false;
+            return !(actor);
         }
-        if (this.right > actor.left &&
+        return (
+            this.right > actor.left &&
             this.left < actor.right &&
             this.top < actor.bottom &&
-            this.bottom > actor.top) {
-            return true;
-        }
-        return false;
+            this.bottom > actor.top
+        );
+
+        return !(actor);
     }
 }
 
@@ -75,7 +76,7 @@ class Level {
         this.grid = grid.slice();
         this.actors = actors.slice();
         this.height = (this.grid === undefined) ? 0 : this.grid.length;
-        this.width = (this.grid === undefined) ? 0 : this.grid.reduce(function(a, b) {
+        this.width = (this.grid === undefined) ? 0 : this.grid.reduce((a, b) => {
             return b.length > a ? b.length : a;
         }, 0);
         // состояние прохождения уровня
@@ -83,9 +84,7 @@ class Level {
         // таймаут после окончания игры
         this.finishDelay = 1;
         // движущийся объект
-        this.player = this.actors.find(act => {
-            return act.type === 'player';
-        });
+        this.player = this.actors.find(act => act.type === 'player');
     }
     // определяет, завершен ли уровень
     isFinished() {
@@ -97,8 +96,7 @@ class Level {
             throw new Error(`Не является экземпляром Actor или не передано аргументов`);
         }
         // если переданный объект пересекается с обЪектом или объектами
-        return this.actors.find(act =>
-            act.isIntersect(actor));
+        return this.actors.find(act => act.isIntersect(actor));
     }
     // Аналогично методу actorAt определяет, нет ли препятствия в указанном месте.
     // Также этот метод контролирует выход объекта за границы игрового поля.
@@ -119,18 +117,16 @@ class Level {
         }
         for (let i = top; i < bottom; i++) {
             for (let k = left; k < right; k++) {
-                const gridCount = this.grid[i][k];
-                if (gridCount) {
-                    return gridCount;
+                const cross = this.grid[i][k];
+                if (cross) {
+                    return cross;
                 }
             }
         }
     }
     // Метод удаляет переданный объект с игрового поля.
     removeActor(actor) {
-        this.actors = this.actors.filter(el => {
-            return el !== actor;
-        });
+        this.actors = this.actors.filter(el => el !== actor);
     }
     // Определяет, остались ли еще объекты переданного типа на игровом поле.
     noMoreActors(type) {
@@ -145,7 +141,7 @@ class Level {
             this.finishDelay = 1;
         }
         if (type === 'coin') {
-            this.actors = this.actors.filter(other => other != actor);
+            this.removeActor(actor);
             if (this.noMoreActors('coin')) {
                 this.status = 'won';
                 this.finishDelay = 1;
@@ -172,36 +168,52 @@ class LevelParser {
                 return 'wall';
             case '!':
                 return 'lava';
-            default:
-                return undefined;
         }
     }
     // Принимает массив строк и преобразует его в массив массивов,
     // в ячейках которого хранится либо строка,
     // соответствующая препятствию, либо undefined.
     createGrid(plan) {
-        const planArr = plan.map(el => el.split(''));
-        return planArr.map(el => el = el.map(el => this.obstacleFromSymbol(el)));
+        return plan.map(el => el.split('')).map(el => el.map(el => this.obstacleFromSymbol(el)));
     }
     // Принимает массив строк и преобразует его в массив движущихся объектов,
     // используя для их создания конструкторы из словаря.
+      createActors(plan) {
+          const actors = [];
+          if (this.map) {
+              plan.map((elemY, y) => {
+                  elemY.split('').map((elemX, x) => {
+                      const mapEl = this.map[elemX];
+                      if (typeof mapEl === 'function') {
+                          const res = new mapEl(new Vector(x, y));
+                          if (res instanceof Actor) {
+                              actors.push(res);
+                          }
+                      }
+                  })
+              })
+          }
+          return actors;
+      }
+    /*
     createActors(plan) {
-        let actors = [];
         if (this.map) {
-            plan.map((elemY, y) => {
-                [...elemY].map((elemX, x) => {
-                    const mapEl = this.map[elemX];
-                    if (typeof mapEl === 'function') {
-                        const res = new mapEl(new Vector(x, y));
-                        if (res instanceof Actor) {
-                            actors.push(res);
+            return plan.reduce((prev, elem, y) => {
+                elem.split('').forEach((count, x) => {
+                    const func = this.actorFromSymbol(count);
+                    if (typeof func === 'function') {
+                        const actor = new func(new Vector(x, y));
+                        if (actor instanceof Actor) {
+                            prev.push(actor);
                         }
                     }
-                })
-            })
+                });
+                return prev;
+            }, []);
         }
-        return actors;
+        return [];
     }
+    */
     // Принимает массив строк, создает и возвращает игровое поле,
     // заполненное препятствиями и движущимися объектами,
     // полученными на основе символов и словаря.
@@ -228,10 +240,10 @@ class Fireball extends Actor {
     // Обновляет состояние движущегося объекта.
     act(time, level) {
         const newPosition = this.getNextPosition(time);
-        if (!(level.obstacleAt(newPosition, this.size))) {
-            this.pos = newPosition;
-        } else {
+        if (level.obstacleAt(newPosition, this.size)) {
             this.handleObstacle();
+        } else {
+            this.pos = newPosition;
         }
     }
 }
@@ -313,7 +325,7 @@ const actorDict = {
     '=': HorizontalFireball,
     '|': VerticalFireball
 
-}
+};
 const parser = new LevelParser(actorDict);
 
 loadLevels()
