@@ -65,6 +65,7 @@ class Actor {
             this.bottom > actor.top
         );
 
+        // лишний код
         return !(actor);
     }
 }
@@ -75,6 +76,8 @@ class Level {
     constructor(grid = [], actors = []) {
         this.grid = grid.slice();
         this.actors = actors.slice();
+        // лишние провеки на undefined,
+        // если this.grid будет undefined то ошибка произойдёт раньше этой строчки
         this.height = (this.grid === undefined) ? 0 : this.grid.length;
         this.width = (this.grid === undefined) ? 0 : this.grid.reduce((a, b) => {
             return b.length > a ? b.length : a;
@@ -102,6 +105,7 @@ class Level {
     // Также этот метод контролирует выход объекта за границы игрового поля.
     obstacleAt(pos, size) {
         if (!(pos instanceof Vector) && !(size instanceof Vector)) {
+            // в следующей строчке ошибка, посмотрите внимательно
             return new Error(`Не является экземпляром Vector или не передано аргументов`);
         }
         const left = Math.floor(pos.x);
@@ -138,12 +142,14 @@ class Level {
         }
         if (type === 'lava' || type === 'fireball') {
             this.status = 'lost';
+            // зачем эта строка?
             this.finishDelay = 1;
         }
         if (type === 'coin') {
             this.removeActor(actor);
             if (this.noMoreActors('coin')) {
                 this.status = 'won';
+                // зачем эта строка?
                 this.finishDelay = 1;
             }
         }
@@ -152,11 +158,14 @@ class Level {
 // позволяет создать игровое поле Level из массива строк
 // принимает словарь
 class LevelParser {
+    // Тут можно добавить значение по-умолчанию
     constructor(map) {
+        // а здесь проверить, что создаётся целостный объект
         this.map = map;
     }
     // Возвращает конструктор объекта по его символу, используя словарь. 
     actorFromSymbol(symbol) {
+        // зачем эта проверка? что изменится, если её убрать?
         if (symbol) {
             return this.map[symbol];
         }
@@ -178,6 +187,7 @@ class LevelParser {
     }
     // Принимает массив строк и преобразует его в массив движущихся объектов,
     // используя для их создания конструкторы из словаря.
+    // форматирование
       createActors(plan) {
           const actors = [];
           if (this.map) {
