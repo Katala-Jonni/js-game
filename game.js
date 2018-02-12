@@ -64,8 +64,6 @@ class Actor {
             this.top < actor.bottom &&
             this.bottom > actor.top
         );
-
-        return !(actor);
     }
 }
 
@@ -75,8 +73,8 @@ class Level {
     constructor(grid = [], actors = []) {
         this.grid = grid.slice();
         this.actors = actors.slice();
-        this.height = (this.grid === undefined) ? 0 : this.grid.length;
-        this.width = (this.grid === undefined) ? 0 : this.grid.reduce((a, b) => {
+        this.height = this.grid.length;
+        this.width = this.grid.reduce((a, b) => {
             return b.length > a ? b.length : a;
         }, 0);
         // состояние прохождения уровня
@@ -102,7 +100,7 @@ class Level {
     // Также этот метод контролирует выход объекта за границы игрового поля.
     obstacleAt(pos, size) {
         if (!(pos instanceof Vector) && !(size instanceof Vector)) {
-            return new Error(`Не является экземпляром Vector или не передано аргументов`);
+            throw new Error(`Не является экземпляром Vector или не передано аргументов`);
         }
         const left = Math.floor(pos.x);
         const right = Math.ceil(pos.x + size.x);
@@ -138,13 +136,11 @@ class Level {
         }
         if (type === 'lava' || type === 'fireball') {
             this.status = 'lost';
-            this.finishDelay = 1;
         }
         if (type === 'coin') {
             this.removeActor(actor);
             if (this.noMoreActors('coin')) {
                 this.status = 'won';
-                this.finishDelay = 1;
             }
         }
     }
@@ -152,14 +148,12 @@ class Level {
 // позволяет создать игровое поле Level из массива строк
 // принимает словарь
 class LevelParser {
-    constructor(map) {
+    constructor(map = []) {
         this.map = map;
     }
     // Возвращает конструктор объекта по его символу, используя словарь. 
     actorFromSymbol(symbol) {
-        if (symbol) {
-            return this.map[symbol];
-        }
+        return this.map[symbol];
     }
     // Возвращает строку, соответствующую символу препятствия.
     obstacleFromSymbol(symbol) {
@@ -178,42 +172,39 @@ class LevelParser {
     }
     // Принимает массив строк и преобразует его в массив движущихся объектов,
     // используя для их создания конструкторы из словаря.
-      createActors(plan) {
-          const actors = [];
-          if (this.map) {
-              plan.map((elemY, y) => {
-                  elemY.split('').map((elemX, x) => {
-                      const mapEl = this.map[elemX];
-                      if (typeof mapEl === 'function') {
-                          const res = new mapEl(new Vector(x, y));
-                          if (res instanceof Actor) {
-                              actors.push(res);
-                          }
-                      }
-                  })
-              })
-          }
-          return actors;
-      }
     /*
     createActors(plan) {
-        if (this.map) {
-            return plan.reduce((prev, elem, y) => {
-                elem.split('').forEach((count, x) => {
-                    const func = this.actorFromSymbol(count);
-                    if (typeof func === 'function') {
-                        const actor = new func(new Vector(x, y));
-                        if (actor instanceof Actor) {
-                            prev.push(actor);
-                        }
+        const actors = [];
+        plan.map((elemY, y) => {
+            elemY.split('').map((elemX, x) => {
+                const mapEl = this.map[elemX];
+                if (typeof mapEl === 'function') {
+                    const res = new mapEl(new Vector(x, y));
+                    if (res instanceof Actor) {
+                        actors.push(res);
                     }
-                });
-                return prev;
-            }, []);
-        }
-        return [];
+                }
+            })
+        })
+        return actors;
     }
     */
+    createActors(plan) {
+        return plan.reduce((prev, elem, y) => {
+            elem.split('').forEach((count, x) => {
+                const func = this.actorFromSymbol(count);
+                if (typeof func === 'function') {
+                    const actor = new func(new Vector(x, y));
+                    if (actor instanceof Actor) {
+                        prev.push(actor);
+                    }
+                }
+            });
+            return prev;
+        }, []);
+        return [];
+    }
+
     // Принимает массив строк, создает и возвращает игровое поле,
     // заполненное препятствиями и движущимися объектами,
     // полученными на основе символов и словаря.
@@ -240,11 +231,7 @@ class Fireball extends Actor {
     // Обновляет состояние движущегося объекта.
     act(time, level) {
         const newPosition = this.getNextPosition(time);
-        if (level.obstacleAt(newPosition, this.size)) {
-            this.handleObstacle();
-        } else {
-            this.pos = newPosition;
-        }
+        level.obstacleAt(newPosition, this.size) ? this.handleObstacle() : this.pos = newPosition;
     }
 }
 // Он будет представлять собой объект,
