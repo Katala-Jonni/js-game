@@ -56,7 +56,7 @@ class Actor {
         }
         // если равен самому себе
         if (actor === this) {
-            return !(actor);
+            return !actor;
         }
         return (
             this.right > actor.left &&
@@ -148,7 +148,7 @@ class Level {
 // позволяет создать игровое поле Level из массива строк
 // принимает словарь
 class LevelParser {
-    constructor(map = []) {
+    constructor(map = {}) {
         this.map = map;
     }
     // Возвращает конструктор объекта по его символу, используя словарь. 
@@ -202,7 +202,6 @@ class LevelParser {
             });
             return prev;
         }, []);
-        return [];
     }
 
     // Принимает массив строк, создает и возвращает игровое поле,
