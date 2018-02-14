@@ -55,9 +55,9 @@ class Actor {
             throw new Error(`Не является экземпляром Actor или не передано аргументов`);
         }
         // если равен самому себе
-        if (actor === this) {
-            return !actor;
-        }
+       if (actor === this) {
+            return false;
+       }
         return (
             this.right > actor.left &&
             this.left < actor.right &&
